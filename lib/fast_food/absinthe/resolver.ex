@@ -161,7 +161,6 @@ defmodule FastFood.Absinthe.Resolver do
     acc
   end
 
-  # TODO Association (many, non-nullable)
   # Association (many, nullable)
   defp do_load_single(record, [%Absinthe.Blueprint.Document.Field{
     selections: selections,
@@ -178,13 +177,38 @@ defmodule FastFood.Absinthe.Resolver do
     do_load_single(record, rest, Map.put(acc, field_identifier, assoc_data))
   end
 
-  # Association (many, non-nullable)
+  # Association (many, list non-nullable, items nullable)
   defp do_load_single(record, [%Absinthe.Blueprint.Document.Field{
     selections: selections,
     schema_node: %Absinthe.Type.Field{
       identifier: field_identifier,
       type: %Absinthe.Type.NonNull{
-        of_type: %Absinthe.Type.List{of_type: assoc_field_type}
+        of_type: %Absinthe.Type.List{
+          of_type: assoc_field_type
+        }
+      }
+    }}|rest], acc) when is_atom(assoc_field_type) and length(selections) != 0 do
+    # IO.puts "- do_load_single (assoc one nullable) record = #{print_record(record)}, field_identifier = #{inspect(field_identifier)}, acc = #{inspect(acc)}"
+
+    assoc_data =
+      record
+      |> fetch_assoc_many(field_identifier)
+      |> do_load_collection(selections, [])
+
+    do_load_single(record, rest, Map.put(acc, field_identifier, assoc_data))
+  end
+
+  # Association (many, list non-nullable, items non-nullable)
+  defp do_load_single(record, [%Absinthe.Blueprint.Document.Field{
+    selections: selections,
+    schema_node: %Absinthe.Type.Field{
+      identifier: field_identifier,
+      type: %Absinthe.Type.NonNull{
+        of_type: %Absinthe.Type.List{
+          of_type: %Absinthe.Type.NonNull{
+            of_type: assoc_field_type
+          }
+        }
       }
     }}|rest], acc) when is_atom(assoc_field_type) and length(selections) != 0 do
     # IO.puts "- do_load_single (assoc one nullable) record = #{print_record(record)}, field_identifier = #{inspect(field_identifier)}, acc = #{inspect(acc)}"
@@ -209,7 +233,7 @@ defmodule FastFood.Absinthe.Resolver do
     do_load_single(record, rest, Map.put(acc, field_identifier, assoc_data))
   end
 
-  # Association (one, non-nullable)
+  # Association (one, list non-nullable)
   defp do_load_single(record, [%Absinthe.Blueprint.Document.Field{
     selections: selections,
     schema_node: %Absinthe.Type.Field{
