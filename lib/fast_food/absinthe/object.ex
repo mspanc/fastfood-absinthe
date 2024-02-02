@@ -178,7 +178,7 @@ defmodule FastFood.Absinthe.Object do
         :many ->
           if non_null do
             quote do
-              field unquote(association_name), non_null(list_of(unquote(absinthe_type)))
+              field unquote(association_name), non_null(list_of(non_null(unquote(absinthe_type))))
             end
           else
             quote do
