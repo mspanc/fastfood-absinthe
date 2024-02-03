@@ -38,8 +38,21 @@ defmodule FastFood.Absinthe.Resolver do
           ecto_schema.changeset(base, input)
         end
 
+      changeset =
+        if function_exported?(ecto_schema, :ff_before_create, 1) do
+          ecto_schema.ff_before_create(changeset)
+        else
+          changeset
+        end
+
       case @ecto_repo.insert(changeset) do
         {:ok, record} ->
+          if function_exported?(ecto_schema, :ff_after_create, 1) do
+            ecto_schema.ff_after_create(record)
+          else
+            changeset
+          end
+
           # Re-load so we apply the same logic as when querying
           load_one(ecto_schema, record.id, selections)
 
@@ -66,8 +79,21 @@ defmodule FastFood.Absinthe.Resolver do
               ecto_schema.changeset(base, input)
             end
 
+          changeset =
+            if function_exported?(ecto_schema, :ff_before_update, 1) do
+              ecto_schema.ff_before_update(changeset)
+            else
+              changeset
+            end
+
           case @ecto_repo.update(changeset) do
             {:ok, record} ->
+              if function_exported?(ecto_schema, :ff_after_update, 1) do
+                ecto_schema.ff_after_update(record)
+              else
+                changeset
+              end
+
               # Re-load so we apply the same logic as when querying
               load_one(ecto_schema, record.id, selections)
 
