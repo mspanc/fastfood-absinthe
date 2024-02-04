@@ -40,6 +40,24 @@ defmodule FastFood.Absinthe.Naming do
   end
 
   @doc """
+  Converts Ecto schema module names to enum types used by
+  Absinthe. They should be lower case atoms.
+
+  The default mechanism tries to use module name. For example,
+  if your Ecto schema module is MyApp.Data.Vehicle.Car, and
+  :ecto_schema_prefix specified in the config is MyApp.Data,
+  and the field name that is enum is :vendor, it should
+  output :vehicle_car_input_vendor_enum.
+
+  It currently cannot be overriden.
+  """
+  @spec ecto_schema_to_absinthe_enum_type(struct(), atom()) :: atom()
+  def ecto_schema_to_absinthe_enum_type(ecto_schema, field_name) do
+    ecto_schema
+    |> do_ecto_schema_to_absinthe_type(nil, nil, "#{field_name}_enum")
+  end
+
+  @doc """
   Converts Ecto schema module names to query names used by
   Absinthe for defining root query allowing to fetch
   a collection of records of given Ecto schema.
@@ -135,7 +153,7 @@ defmodule FastFood.Absinthe.Naming do
   end
 
   defp do_ecto_schema_to_absinthe_type(ecto_schema, override_fun, prefix \\ nil, suffix \\ nil) do
-    if function_exported?(ecto_schema, override_fun, 0) do
+    if !is_nil(override_fun) && function_exported?(ecto_schema, override_fun, 0) do
       apply(ecto_schema, override_fun, [])
     else
       splitted =
@@ -185,6 +203,23 @@ defmodule FastFood.Absinthe.Naming do
     |> do_ecto_schema_to_graphql_type(:ff_graphql_type)
   end
 
+  @doc """
+  Converts Ecto schema module names to GraphQL typenames
+  for enum types.
+
+  The default mechanism tries to use module name. For example,
+  if your Ecto schema module is MyApp.Data.Vehicle.Car, and
+  :ecto_schema_prefix specified in the config is MyApp.Data,
+  and field name that is enum is :vendor, it should output
+  "VehicleCarInputVendorEnum".
+
+  It currently cannot be overridden.
+  """
+  @spec ecto_schema_to_graphql_enum_type(struct(), atom()) :: String.t()
+  def ecto_schema_to_graphql_enum_type(ecto_schema, field_name) do
+    ecto_schema
+    |> do_ecto_schema_to_graphql_type(nil, "#{Inflex.camelize(field_name)}Enum")
+  end
 
   @doc """
   Converts Ecto schema module names to GraphQL typenames
@@ -244,9 +279,6 @@ defmodule FastFood.Absinthe.Naming do
 
       {:parameterized, Ecto.Embedded, %Ecto.Embedded{cardinality: :one, related: related_ecto_schema}} ->
         ecto_schema_to_absinthe_type(related_ecto_schema)
-
-      {:parameterized, Ecto.Enum, %{type: enum_base_type}} ->
-        ecto_field_type_to_absinthe_type(enum_base_type)
 
       other ->
         other

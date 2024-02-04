@@ -23,6 +23,7 @@ defmodule FastFood.Absinthe.MixProject do
     [
       {:ecto_sql, "~> 3.10"},
       {:absinthe, "~> 1.7"},
+      {:inflex, "~> 2.0"},
     ]
   end
 end
