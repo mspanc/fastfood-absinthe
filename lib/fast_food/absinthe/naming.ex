@@ -234,7 +234,6 @@ defmodule FastFood.Absinthe.Naming do
   """
   @spec ecto_field_type_to_absinthe_type(atom()) :: atom()
   def ecto_field_type_to_absinthe_type(ecto_type) do
-    # TODO support embeds_many
     # TODO support polymorphic embed
     case ecto_type do
       :utc_datetime_usec ->
@@ -247,7 +246,7 @@ defmodule FastFood.Absinthe.Naming do
         ecto_schema_to_absinthe_type(related_ecto_schema)
 
       {:parameterized, Ecto.Enum, %{type: enum_base_type}} ->
-        ecto_schema_to_absinthe_type(enum_base_type)
+        ecto_field_type_to_absinthe_type(enum_base_type)
 
       other ->
         other
