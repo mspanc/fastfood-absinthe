@@ -113,19 +113,19 @@ defmodule FastFood.Absinthe.Resolver do
       # Re-load so we apply the same logic as when querying
       old_record = load_one(ecto_schema, id, selections)
 
-      if function_exported?(ecto_schema, :ff_before_delete, 1) do
-        ecto_schema.ff_before_delete(old_record)
-      end
-
       case @ecto_repo.get(ecto_schema, id) do
         nil ->
           @ecto_repo.rollback(:notfound)
 
         record ->
+          if function_exported?(ecto_schema, :ff_before_delete, 1) do
+            ecto_schema.ff_before_delete(record)
+          end
+
           case @ecto_repo.delete(record) do
             {:ok, _record} ->
               if function_exported?(ecto_schema, :ff_after_delete, 1) do
-                ecto_schema.ff_after_delete(old_record)
+                ecto_schema.ff_after_delete(record)
               end
 
               # Return deleted record as it was loaded prior to deletion
