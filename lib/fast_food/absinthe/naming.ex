@@ -246,6 +246,9 @@ defmodule FastFood.Absinthe.Naming do
       {:parameterized, Ecto.Embedded, %Ecto.Embedded{cardinality: :one, related: related_ecto_schema}} ->
         ecto_schema_to_absinthe_type(related_ecto_schema)
 
+      {:parameterized, Ecto.Enum, %{type: enum_base_type}} ->
+        ecto_schema_to_absinthe_type(enum_base_type)
+
       other ->
         other
     end
