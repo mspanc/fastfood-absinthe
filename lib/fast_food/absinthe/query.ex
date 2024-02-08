@@ -18,11 +18,11 @@ defmodule FastFood.Absinthe.Query do
 
   defp make_root_query_many(ecto_schema) do
     absinthe_return_type = ecto_schema_to_absinthe_type(ecto_schema)
-    {query_type, query_name} = ecto_schema_to_absinthe_query_many(ecto_schema)
+    query_name = ecto_schema_to_absinthe_query_many(ecto_schema)
 
-    IO.puts "Root Query (many): ecto_schema = #{inspect(ecto_schema)}, absinthe_return_type = non_null(#{inspect(absinthe_return_type)}), query_type = #{inspect(query_type)}, query_name = #{inspect(query_name)}"
+    IO.puts "Root Query (many): ecto_schema = #{inspect(ecto_schema)}, absinthe_return_type = non_null(#{inspect(absinthe_return_type)}), query_name = #{inspect(query_name)}"
     quote do
-      field unquote(query_type), list_of(non_null(unquote(absinthe_return_type))), name: unquote(query_name) do
+      field unquote(query_name), list_of(non_null(unquote(absinthe_return_type))) do
         resolve fn(parent, args, resolution) ->
           Resolver.resolve_root_query_many(unquote(ecto_schema), parent, args, resolution)
         end
@@ -32,11 +32,11 @@ defmodule FastFood.Absinthe.Query do
 
   defp make_root_query_one(ecto_schema) do
     absinthe_return_type = ecto_schema_to_absinthe_type(ecto_schema)
-    {query_type, query_name} = ecto_schema_to_absinthe_query_one(ecto_schema)
+    query_name = ecto_schema_to_absinthe_query_one(ecto_schema)
 
-    IO.puts "Root Query (one): ecto_schema = #{inspect(ecto_schema)}, absinthe_type = #{inspect(absinthe_return_type)}, query_type = #{inspect(query_type)}, query_name = #{inspect(query_name)}"
+    IO.puts "Root Query (one): ecto_schema = #{inspect(ecto_schema)}, absinthe_return_type = #{inspect(absinthe_return_type)}, query_name = #{inspect(query_name)}"
     quote do
-      field unquote(query_type), unquote(absinthe_return_type), name: unquote(query_name) do
+      field unquote(query_name), unquote(absinthe_return_type) do
         arg :id, non_null(:id)
         resolve fn(parent, args, resolution) ->
           Resolver.resolve_root_query_one(unquote(ecto_schema), parent, args, resolution)

@@ -65,24 +65,15 @@ defmodule FastFood.Absinthe.Naming do
   The default mechanism tries to use module name. For example,
   if your Ecto schema module is MyApp.Data.Vehicle.Car and
   :ecto_schema_prefix specified in the config is MyApp.Data
-  it should output `{:vehicle_cars_query, "vehicleCars"}`.
+  it should output `:vehicle_cars_`.
 
-  It can be overriden by declaring ff_root_query_many_type/0
-  or ff_root_query_many_name/0 in the Ecto schema module.
+  It can be overriden by declaring ff_root_query_many/0 in
+  the Ecto schema module.
   """
   @spec ecto_schema_to_absinthe_query_many(struct()) :: atom()
   def ecto_schema_to_absinthe_query_many(ecto_schema) do
-    name =
-      ecto_schema
-      |> do_ecto_schema_to_graphql_type(:ff_root_query_many_name)
-      |> Inflex.pluralize()
-      |> Inflex.camelize(:lower)
-
-    type =
-      ecto_schema
-      |> do_ecto_schema_to_absinthe_type(:ff_root_query_many_type, nil, "query_many")
-
-    {type, name}
+    ecto_schema
+    |> do_ecto_schema_to_absinthe_type(:ff_root_query_many, nil, nil, true)
   end
 
   @doc """
@@ -100,16 +91,8 @@ defmodule FastFood.Absinthe.Naming do
   """
   @spec ecto_schema_to_absinthe_query_one(struct()) :: atom()
   def ecto_schema_to_absinthe_query_one(ecto_schema) do
-    name =
-      ecto_schema
-      |> do_ecto_schema_to_graphql_type(:ff_root_query_one_name)
-      |> Inflex.camelize(:lower)
-
-    type =
-      ecto_schema
-      |> do_ecto_schema_to_absinthe_type(:ff_root_query_one_type, nil, "query_one")
-
-    {type, name}
+    ecto_schema
+    |> do_ecto_schema_to_absinthe_type(:ff_root_query_one_name)
   end
 
   @doc """
@@ -127,16 +110,8 @@ defmodule FastFood.Absinthe.Naming do
   """
   @spec ecto_schema_to_absinthe_mutation_create_one(struct()) :: atom()
   def ecto_schema_to_absinthe_mutation_create_one(ecto_schema) do
-    name =
-      ecto_schema
-      |> do_ecto_schema_to_graphql_type(:ff_root_mutation_create_one_name, "create")
-      |> Inflex.camelize(:lower)
-
-    type =
-      ecto_schema
-      |> do_ecto_schema_to_absinthe_type(:ff_root_mutation_create_one_type, nil, "mutation_create_one")
-
-    {type, name}
+    ecto_schema
+    |> do_ecto_schema_to_absinthe_type(:ff_root_mutation_create_one, "create")
   end
 
   @doc """
@@ -154,16 +129,8 @@ defmodule FastFood.Absinthe.Naming do
   """
   @spec ecto_schema_to_absinthe_mutation_delete_one(struct()) :: atom()
   def ecto_schema_to_absinthe_mutation_delete_one(ecto_schema) do
-    name =
-      ecto_schema
-      |> do_ecto_schema_to_graphql_type(:ff_root_mutation_delete_one_name, "delete")
-      |> Inflex.camelize(:lower)
-
-    type =
-      ecto_schema
-      |> do_ecto_schema_to_absinthe_type(:ff_root_mutation_delete_one_type, nil, "mutation_delete_one")
-
-    {type, name}
+    ecto_schema
+    |> do_ecto_schema_to_absinthe_type(:ff_root_mutation_delete_one, "delete")
   end
 
   @doc """
@@ -181,60 +148,8 @@ defmodule FastFood.Absinthe.Naming do
   """
   @spec ecto_schema_to_absinthe_mutation_update_one(struct()) :: atom()
   def ecto_schema_to_absinthe_mutation_update_one(ecto_schema) do
-    name =
-      ecto_schema
-      |> do_ecto_schema_to_graphql_type(:ff_root_mutation_update_one_name, "update")
-      |> Inflex.camelize(:lower)
-
-    type =
-      ecto_schema
-      |> do_ecto_schema_to_absinthe_type(:ff_root_mutation_update_one_type, nil, "mutation_update_one")
-
-    {type, name}
-  end
-
-  defp do_ecto_schema_to_absinthe_type(ecto_schema, override_fun, prefix \\ nil, suffix \\ nil, pluralize_base \\ false) do
-    if !is_nil(override_fun) && function_exported?(ecto_schema, override_fun, 0) do
-      apply(ecto_schema, override_fun, [])
-    else
-      stringified =
-        ecto_schema
-        |> to_string()
-        |> String.downcase()
-
-      stringified =
-        if pluralize_base do
-          Inflex.pluralize(stringified)
-        else
-          stringified
-        end
-
-      splitted =
-        stringified
-        |> String.split(".")
-
-      splitted =
-        splitted
-        |> Enum.slice(@ecto_schema_prefix_length, length(splitted))
-
-      splitted =
-        if !is_nil(prefix) do
-          [prefix|splitted]
-        else
-          splitted
-        end
-
-      splitted =
-        if !is_nil(suffix) do
-          splitted ++ [suffix]
-        else
-          splitted
-        end
-
-      splitted
-      |> Enum.join("_")
-      |> String.to_atom()
-    end
+    ecto_schema
+    |> do_ecto_schema_to_absinthe_type(:ff_root_mutation_update_one, "update")
   end
 
   @doc """
@@ -290,38 +205,6 @@ defmodule FastFood.Absinthe.Naming do
     |> do_ecto_schema_to_graphql_type(:ff_graphql_input_type, nil, "Input")
   end
 
-  defp do_ecto_schema_to_graphql_type(ecto_schema, override_fun, prefix \\ nil, suffix \\ nil) do
-    if function_exported?(ecto_schema, override_fun, 0) do
-      apply(ecto_schema, override_fun, 0)
-    else
-      splitted =
-        ecto_schema
-        |> to_string()
-        |> String.split(".")
-
-      splitted =
-        splitted
-        |> Enum.slice(@ecto_schema_prefix_length, length(splitted))
-
-      splitted =
-        if !is_nil(prefix) do
-          [prefix|splitted]
-        else
-          splitted
-        end
-
-      splitted =
-        if !is_nil(suffix) do
-          splitted ++ [suffix]
-        else
-          splitted
-        end
-
-      splitted
-      |> Enum.join("")
-    end
-  end
-
   @doc """
   Converts field types used by Ecto to ones used by Absinthe.
   """
@@ -368,5 +251,55 @@ defmodule FastFood.Absinthe.Naming do
       |> Enum.member?(field_name)
 
     is_whitelisted || is_primary_key || is_autogenerated
+  end
+
+  defp do_ecto_schema_to_absinthe_type(ecto_schema, override_fun, prefix \\ nil, suffix \\ nil, pluralize_base \\ false) do
+    do_ecto_schema_prepare(ecto_schema, override_fun, prefix, suffix, pluralize_base)
+    |> Enum.join("")
+    |> Inflex.underscore()
+    |> String.to_atom()
+  end
+
+  defp do_ecto_schema_to_graphql_type(ecto_schema, override_fun, prefix \\ nil, suffix \\ nil, pluralize_base \\ false) do
+    do_ecto_schema_prepare(ecto_schema, override_fun, prefix, suffix, pluralize_base)
+    |> Enum.join("")
+  end
+
+  defp do_ecto_schema_prepare(ecto_schema, override_fun, prefix \\ nil, suffix \\ nil, pluralize_base \\ false) do
+    if function_exported?(ecto_schema, override_fun, 0) do
+      apply(ecto_schema, override_fun, 0)
+    else
+      stringified =
+        ecto_schema
+        |> to_string()
+
+      stringified =
+        if pluralize_base do
+          Inflex.pluralize(stringified)
+        else
+          stringified
+        end
+
+      splitted =
+        stringified
+        |> String.split(".")
+
+      splitted =
+        splitted
+        |> Enum.slice(@ecto_schema_prefix_length, length(splitted))
+
+      splitted =
+        if !is_nil(prefix) do
+          [prefix|splitted]
+        else
+          splitted
+        end
+
+      if !is_nil(suffix) do
+        splitted ++ [suffix]
+      else
+        splitted
+      end
+    end
   end
 end
