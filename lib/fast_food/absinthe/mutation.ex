@@ -20,7 +20,7 @@ defmodule FastFood.Absinthe.Mutation do
     absinthe_input_type = ecto_schema_to_absinthe_input_type(ecto_schema)
     absinthe_return_type = ecto_schema_to_absinthe_type(ecto_schema)
 
-    IO.puts "Create Mutation: ecto_schema = #{inspect(ecto_schema)}, absinthe_name = #{inspect(absinthe_name)}, absinthe_input_type = #{inspect(absinthe_input_type)}, absinthe_return_type = #{inspect(absinthe_return_type)}"
+    IO.puts "Root Mutation (create one): ecto_schema = #{inspect(ecto_schema)}, absinthe_name = #{inspect(absinthe_name)}, absinthe_input_type = #{inspect(absinthe_input_type)}, absinthe_return_type = #{inspect(absinthe_return_type)}"
     quote do
       field unquote(absinthe_name), unquote(absinthe_return_type) do
         arg :input, non_null(unquote(absinthe_input_type))
@@ -36,7 +36,7 @@ defmodule FastFood.Absinthe.Mutation do
     absinthe_input_type = ecto_schema_to_absinthe_input_type(ecto_schema)
     absinthe_return_type = ecto_schema_to_absinthe_type(ecto_schema)
 
-    IO.puts "Update Mutation: ecto_schema = #{inspect(ecto_schema)}, absinthe_name = #{inspect(absinthe_name)}, absinthe_input_type = #{inspect(absinthe_input_type)}, absinthe_return_type = #{inspect(absinthe_return_type)}"
+    IO.puts "Root Mutation (update one): ecto_schema = #{inspect(ecto_schema)}, absinthe_name = #{inspect(absinthe_name)}, absinthe_input_type = #{inspect(absinthe_input_type)}, absinthe_return_type = #{inspect(absinthe_return_type)}"
     quote do
       field unquote(absinthe_name), unquote(absinthe_return_type) do
         arg :id, non_null(:id)
@@ -53,7 +53,7 @@ defmodule FastFood.Absinthe.Mutation do
     absinthe_input_type = ecto_schema_to_absinthe_input_type(ecto_schema)
     absinthe_return_type = ecto_schema_to_absinthe_type(ecto_schema)
 
-    IO.puts "Delete Mutation: ecto_schema = #{inspect(ecto_schema)}, absinthe_name = #{inspect(absinthe_name)}, absinthe_input_type = #{inspect(absinthe_input_type)}, absinthe_return_type = #{inspect(absinthe_return_type)}"
+    IO.puts "Root Mutation (delete one): ecto_schema = #{inspect(ecto_schema)}, absinthe_name = #{inspect(absinthe_name)}, absinthe_input_type = #{inspect(absinthe_input_type)}, absinthe_return_type = #{inspect(absinthe_return_type)}"
     quote do
       field unquote(absinthe_name), unquote(absinthe_return_type) do
         arg :id, non_null(:id)

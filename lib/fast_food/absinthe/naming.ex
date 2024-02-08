@@ -65,15 +65,27 @@ defmodule FastFood.Absinthe.Naming do
   The default mechanism tries to use module name. For example,
   if your Ecto schema module is MyApp.Data.Vehicle.Car and
   :ecto_schema_prefix specified in the config is MyApp.Data
-  it should output :vehicle_car_list.
+  it should output `{:vehicle_cars_query, "vehicleCars"}`.
 
-  It can be overriden by declaring ff_root_query_many/0
-  in the Ecto schema module.
+  It can be overriden by declaring ff_root_query_many_type/0
+  or ff_root_query_many_name/0 in the Ecto schema module.
   """
   @spec ecto_schema_to_absinthe_query_many(struct()) :: atom()
   def ecto_schema_to_absinthe_query_many(ecto_schema) do
-    ecto_schema
-    |> do_ecto_schema_to_absinthe_type(:ff_root_query_many, nil, "list")
+    name =
+      ecto_schema
+      |> do_ecto_schema_to_graphql_type(:ff_root_query_many_name)
+      |> Inflex.pluralize()
+      |> Inflex.camelize(:lower)
+
+    type =
+      ecto_schema
+      |> do_ecto_schema_to_absinthe_type(:ff_root_query_many_type, nil, "query")
+      |> to_string()
+      |> Inflex.pluralize()
+      |> String.to_atom()
+
+    {type, name}
   end
 
   @doc """
@@ -84,15 +96,23 @@ defmodule FastFood.Absinthe.Naming do
   The default mechanism tries to use module name. For example,
   if your Ecto schema module is MyApp.Data.Vehicle.Car and
   :ecto_schema_prefix specified in the config is MyApp.Data
-  it should output :vehicle_car.
+  it should output `{:vehicle_car_query, "vehicleCar"}`.
 
-  It can be overriden by declaring ff_root_query_one/0
-  in the Ecto schema module.
+  It can be overriden by declaring ff_root_query_one_type/0
+  or ff_root_query_one_name/0 in the Ecto schema module.
   """
   @spec ecto_schema_to_absinthe_query_one(struct()) :: atom()
   def ecto_schema_to_absinthe_query_one(ecto_schema) do
-    ecto_schema
-    |> do_ecto_schema_to_absinthe_type(:ff_root_query_one)
+    name =
+      ecto_schema
+      |> do_ecto_schema_to_graphql_type(:ff_root_query_one_name)
+      |> Inflex.camelize(:lower)
+
+    type =
+      ecto_schema
+      |> do_ecto_schema_to_absinthe_type(:ff_root_query_one_type, nil, "query")
+
+    {type, name}
   end
 
   @doc """

@@ -17,12 +17,12 @@ defmodule FastFood.Absinthe.Query do
   end
 
   defp make_root_query_many(ecto_schema) do
-    absinthe_type = ecto_schema_to_absinthe_type(ecto_schema)
-    query_name = ecto_schema_to_absinthe_query_many(ecto_schema)
+    return_absinthe_type = ecto_schema_to_absinthe_type(ecto_schema)
+    {query_type, query_name} = ecto_schema_to_absinthe_query_many(ecto_schema)
 
-    IO.puts "Root Query Many: ecto_schema = #{inspect(ecto_schema)}, absinthe_type = #{inspect(absinthe_type)}, query_name = #{inspect(query_name)}"
+    IO.puts "Root Query (many): ecto_schema = #{inspect(ecto_schema)}, return_absinthe_type = non_null(#{inspect(return_absinthe_type)}), query_type = #{inspect(query_type)}, query_name = #{inspect(query_name)}"
     quote do
-      field unquote(query_name), list_of(unquote(absinthe_type)) do
+      field unquote(query_type), list_of(non_null(unquote(return_absinthe_type))), name: unquote(query_name) do
         resolve fn(parent, args, resolution) ->
           Resolver.resolve_root_query_many(unquote(ecto_schema), parent, args, resolution)
         end
@@ -31,12 +31,12 @@ defmodule FastFood.Absinthe.Query do
   end
 
   defp make_root_query_one(ecto_schema) do
-    absinthe_type = ecto_schema_to_absinthe_type(ecto_schema)
-    query_name = ecto_schema_to_absinthe_query_one(ecto_schema)
+    return_absinthe_type = ecto_schema_to_absinthe_type(ecto_schema)
+    {query_type, query_name} = ecto_schema_to_absinthe_query_one(ecto_schema)
 
-    IO.puts "Root Query (one): ecto_schema = #{inspect(ecto_schema)}, absinthe_type = #{inspect(absinthe_type)}, query_name = #{inspect(query_name)}"
+    IO.puts "Root Query (one): ecto_schema = #{inspect(ecto_schema)}, absinthe_type = #{inspect(return_absinthe_type)}, query_type = #{inspect(query_type)}, query_name = #{inspect(query_name)}"
     quote do
-      field unquote(query_name), unquote(absinthe_type) do
+      field unquote(query_type), unquote(return_absinthe_type), name: unquote(query_name) do
         arg :id, non_null(:id)
         resolve fn(parent, args, resolution) ->
           Resolver.resolve_root_query_one(unquote(ecto_schema), parent, args, resolution)
