@@ -16,13 +16,13 @@ defmodule FastFood.Absinthe.Mutation do
   end
 
   defp make_create_one(ecto_schema) do
-    absinthe_name = ecto_schema_to_absinthe_create_mutation_one(ecto_schema)
+    {mutation_type, mutation_name} = ecto_schema_to_absinthe_mutation_create_one(ecto_schema)
     absinthe_input_type = ecto_schema_to_absinthe_input_type(ecto_schema)
     absinthe_return_type = ecto_schema_to_absinthe_type(ecto_schema)
 
-    IO.puts "Root Mutation (create one): ecto_schema = #{inspect(ecto_schema)}, absinthe_name = #{inspect(absinthe_name)}, absinthe_input_type = #{inspect(absinthe_input_type)}, absinthe_return_type = #{inspect(absinthe_return_type)}"
+    IO.puts "Root Mutation (create one): ecto_schema = #{inspect(ecto_schema)}, absinthe_input_type = #{inspect(absinthe_input_type)}, absinthe_return_type = #{inspect(absinthe_return_type)}, mutation_type = #{inspect(mutation_type)}, mutation_name = #{inspect(mutation_name)}"
     quote do
-      field unquote(absinthe_name), unquote(absinthe_return_type) do
+      field unquote(mutation_type), unquote(absinthe_return_type), name: unquote(mutation_name) do
         arg :input, non_null(unquote(absinthe_input_type))
         resolve fn(parent, args, resolution) ->
           Resolver.resolve_root_create_one(unquote(ecto_schema), parent, args, resolution)
@@ -32,13 +32,13 @@ defmodule FastFood.Absinthe.Mutation do
   end
 
   defp make_update_one(ecto_schema) do
-    absinthe_name = ecto_schema_to_absinthe_update_mutation_one(ecto_schema)
+    {mutation_type, mutation_name} = ecto_schema_to_absinthe_mutation_update_one(ecto_schema)
     absinthe_input_type = ecto_schema_to_absinthe_input_type(ecto_schema)
     absinthe_return_type = ecto_schema_to_absinthe_type(ecto_schema)
 
-    IO.puts "Root Mutation (update one): ecto_schema = #{inspect(ecto_schema)}, absinthe_name = #{inspect(absinthe_name)}, absinthe_input_type = #{inspect(absinthe_input_type)}, absinthe_return_type = #{inspect(absinthe_return_type)}"
+    IO.puts "Root Mutation (update one): ecto_schema = #{inspect(ecto_schema)}, absinthe_input_type = #{inspect(absinthe_input_type)}, absinthe_return_type = #{inspect(absinthe_return_type)}, mutation_type = #{inspect(mutation_type)}, mutation_name = #{inspect(mutation_name)}"
     quote do
-      field unquote(absinthe_name), unquote(absinthe_return_type) do
+      field unquote(mutation_type), unquote(absinthe_return_type), name: unquote(mutation_name) do
         arg :id, non_null(:id)
         arg :input, non_null(unquote(absinthe_input_type))
         resolve fn(parent, args, resolution) ->
@@ -49,13 +49,13 @@ defmodule FastFood.Absinthe.Mutation do
   end
 
   defp make_delete_one(ecto_schema) do
-    absinthe_name = ecto_schema_to_absinthe_delete_mutation_one(ecto_schema)
+    {mutation_type, mutation_name} = ecto_schema_to_absinthe_mutation_delete_one(ecto_schema)
     absinthe_input_type = ecto_schema_to_absinthe_input_type(ecto_schema)
     absinthe_return_type = ecto_schema_to_absinthe_type(ecto_schema)
 
-    IO.puts "Root Mutation (delete one): ecto_schema = #{inspect(ecto_schema)}, absinthe_name = #{inspect(absinthe_name)}, absinthe_input_type = #{inspect(absinthe_input_type)}, absinthe_return_type = #{inspect(absinthe_return_type)}"
+    IO.puts "Root Mutation (delete one): ecto_schema = #{inspect(ecto_schema)}, absinthe_input_type = #{inspect(absinthe_input_type)}, absinthe_return_type = #{inspect(absinthe_return_type)}, mutation_type = #{inspect(mutation_type)}, mutation_name = #{inspect(mutation_name)}"
     quote do
-      field unquote(absinthe_name), unquote(absinthe_return_type) do
+      field unquote(mutation_type), unquote(absinthe_return_type), name: unquote(mutation_name) do
         arg :id, non_null(:id)
         resolve fn(parent, args, resolution) ->
           Resolver.resolve_root_delete_one(unquote(ecto_schema), parent, args, resolution)
