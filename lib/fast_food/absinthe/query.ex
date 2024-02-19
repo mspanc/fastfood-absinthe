@@ -22,7 +22,7 @@ defmodule FastFood.Absinthe.Query do
 
     IO.puts "Root Query (many): ecto_schema = #{inspect(ecto_schema)}, absinthe_return_type = non_null(#{inspect(absinthe_return_type)}), query_name = #{inspect(query_name)}"
     quote do
-      field unquote(query_name), list_of(non_null(unquote(absinthe_return_type))) do
+      field unquote(query_name), non_null(list_of(non_null(unquote(absinthe_return_type)))) do
         resolve fn(parent, args, resolution) ->
           Resolver.resolve_root_query_many(unquote(ecto_schema), parent, args, resolution)
         end
