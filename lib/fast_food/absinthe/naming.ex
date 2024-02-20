@@ -184,7 +184,7 @@ defmodule FastFood.Absinthe.Naming do
   @spec ecto_schema_to_graphql_enum_type(struct(), atom()) :: String.t()
   def ecto_schema_to_graphql_enum_type(ecto_schema, field_name) do
     ecto_schema
-    |> do_ecto_schema_to_graphql_type(nil, "#{Inflex.camelize(field_name)}Enum")
+    |> do_ecto_schema_to_graphql_type(nil, nil, "#{Inflex.camelize(field_name)}Enum")
   end
 
   @doc """
