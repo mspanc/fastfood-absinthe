@@ -36,7 +36,7 @@ defmodule FastFood.Absinthe.Naming do
   @spec ecto_schema_to_absinthe_input_type(struct()) :: atom()
   def ecto_schema_to_absinthe_input_type(ecto_schema) do
     ecto_schema
-    |> do_ecto_schema_to_absinthe_type(:ff_absinthe_input_type, nil, "input")
+    |> do_ecto_schema_to_absinthe_type(:ff_absinthe_input_type, nil, "Input")
   end
 
   @doc """
