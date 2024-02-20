@@ -136,8 +136,14 @@ defmodule FastFood.Absinthe.Object do
             end
 
           :many ->
-            quote do
-              field unquote(field_name), non_null(list_of(non_null(unquote(absinthe_type))))
+            if is_input_type do
+              quote do
+                field unquote(field_name), non_null(list_of(non_null(unquote(absinthe_type))))
+              end
+            else
+              quote do
+                field unquote(field_name), non_null(list_of(non_null(unquote(absinthe_type))))
+              end
             end
         end
       end
@@ -203,8 +209,14 @@ defmodule FastFood.Absinthe.Object do
             end
 
           :many ->
-            quote do
-              field unquote(association_name), non_null(list_of(non_null(unquote(absinthe_type))))
+            if is_input_type do
+              quote do
+                field unquote(association_name), list_of(non_null(unquote(absinthe_type)))
+              end
+            else
+              quote do
+                field unquote(association_name), non_null(list_of(non_null(unquote(absinthe_type))))
+              end
             end
         end
       end
