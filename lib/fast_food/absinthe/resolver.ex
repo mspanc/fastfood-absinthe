@@ -179,13 +179,16 @@ defmodule FastFood.Absinthe.Resolver do
           |> Enum.map(fn {field, errors} ->
             # TODO errors can be nested, e.g.
             # %{a: %{b: [\"message\"]}})
-            "#{field} #{Enum.join(errors, ", ")}"
+            "#{Inflex.camelize(to_string(field), :lower)} #{Enum.join(errors, ", ")}"
           end)
           |> Enum.join("; ")
 
         fields =
           traversed
-          |> Enum.into(%{})
+          |> Enum.reduce(%{}, fn {field, errors}, acc ->
+            acc
+            |> Map.put(Inflex.camelize(to_string(field), :lower), errors)
+          end)
 
         {:error,
          message: "Unable to perform database operation: #{reason}",
