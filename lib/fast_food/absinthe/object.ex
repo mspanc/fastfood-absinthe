@@ -9,6 +9,7 @@ defmodule FastFood.Absinthe.Object do
     input_type = make_input_type(ecto_schema)
 
     types = [enum_type, type, input_type]
+
     quote do
       unquote(types)
     end
@@ -17,9 +18,13 @@ defmodule FastFood.Absinthe.Object do
   def make_type(ecto_schema) do
     absinthe_type = ecto_schema_to_absinthe_type(ecto_schema)
     graphql_type = ecto_schema_to_graphql_type(ecto_schema)
-    IO.puts "Type: ecto_schema = #{inspect(ecto_schema)}, absinthe_type = #{inspect(absinthe_type)}, graphql_type = #{inspect(graphql_type)}"
+
+    IO.puts(
+      "Type: ecto_schema = #{inspect(ecto_schema)}, absinthe_type = #{inspect(absinthe_type)}, graphql_type = #{inspect(graphql_type)}"
+    )
 
     fields = make_fields(ecto_schema, false)
+
     quote do
       object unquote(absinthe_type), name: unquote(graphql_type) do
         unquote(fields)
@@ -30,9 +35,13 @@ defmodule FastFood.Absinthe.Object do
   def make_input_type(ecto_schema) do
     absinthe_type = ecto_schema_to_absinthe_input_type(ecto_schema)
     graphql_type = ecto_schema_to_graphql_input_type(ecto_schema)
-    IO.puts "Input Type: ecto_schema = #{inspect(ecto_schema)}, absinthe_type = #{inspect(absinthe_type)}, graphql_type = #{inspect(graphql_type)}"
+
+    IO.puts(
+      "Input Type: ecto_schema = #{inspect(ecto_schema)}, absinthe_type = #{inspect(absinthe_type)}, graphql_type = #{inspect(graphql_type)}"
+    )
 
     fields = make_fields(ecto_schema, true)
+
     quote do
       input_object unquote(absinthe_type), name: unquote(graphql_type) do
         unquote(fields)
@@ -42,6 +51,7 @@ defmodule FastFood.Absinthe.Object do
 
   def make_enum_type(ecto_schema) do
     all_fields = ecto_schema.__schema__(:fields)
+
     for field_name <- all_fields do
       ecto_type = ecto_schema.__schema__(:type, field_name)
 
@@ -49,23 +59,29 @@ defmodule FastFood.Absinthe.Object do
         {:parameterized, Ecto.Enum, %{on_cast: on_cast}} ->
           absinthe_type = ecto_schema_to_absinthe_enum_type(ecto_schema, field_name)
           graphql_type = ecto_schema_to_graphql_enum_type(ecto_schema, field_name)
+
           enum_values =
             on_cast
             |> Map.keys()
             |> Enum.map(&String.to_atom/1)
 
-          fields = for enum_value <- enum_values do
-            quote do
-              value unquote(enum_value)
+          fields =
+            for enum_value <- enum_values do
+              quote do
+                value(unquote(enum_value))
+              end
             end
-          end
 
-          IO.puts "Enum Type: ecto_schema = #{inspect(ecto_schema)}, absinthe_type = #{inspect(absinthe_type)}, graphql_type = #{inspect(graphql_type)}, enum_values = #{inspect(enum_values)}"
+          IO.puts(
+            "Enum Type: ecto_schema = #{inspect(ecto_schema)}, absinthe_type = #{inspect(absinthe_type)}, graphql_type = #{inspect(graphql_type)}, enum_values = #{inspect(enum_values)}"
+          )
+
           quote do
             enum unquote(absinthe_type), name: unquote(graphql_type) do
               unquote(fields)
             end
           end
+
         _ ->
           nil
       end
@@ -74,9 +90,9 @@ defmodule FastFood.Absinthe.Object do
 
   defp make_fields(ecto_schema, is_input_type) do
     make_persistent_fields(ecto_schema, is_input_type) ++
-    make_virtual_fields(ecto_schema, is_input_type) ++
-    make_embedded_fields(ecto_schema, is_input_type) ++
-    make_associations(ecto_schema, is_input_type)
+      make_virtual_fields(ecto_schema, is_input_type) ++
+      make_embedded_fields(ecto_schema, is_input_type) ++
+      make_associations(ecto_schema, is_input_type)
   end
 
   defp make_persistent_fields(ecto_schema, is_input_type) do
@@ -121,28 +137,31 @@ defmodule FastFood.Absinthe.Object do
           is_field_non_null?(ecto_schema, field_name)
         end
 
-      IO.puts " - embed: field_name = #{inspect(field_name)}, related_ecto_schema = #{inspect(related_ecto_schema)}, absinthe_type = #{inspect(absinthe_type)}, non_null = #{inspect(non_null)}, cardinality = #{inspect(cardinality)}"
+      IO.puts(
+        " - embed: field_name = #{inspect(field_name)}, related_ecto_schema = #{inspect(related_ecto_schema)}, absinthe_type = #{inspect(absinthe_type)}, non_null = #{inspect(non_null)}, cardinality = #{inspect(cardinality)}"
+      )
+
       if !is_nil(absinthe_type) do
         case cardinality do
           :one ->
             if non_null do
               quote do
-                field unquote(field_name), non_null(unquote(absinthe_type))
+                field(unquote(field_name), non_null(unquote(absinthe_type)))
               end
             else
               quote do
-                field unquote(field_name), unquote(absinthe_type)
+                field(unquote(field_name), unquote(absinthe_type))
               end
             end
 
           :many ->
             if is_input_type do
               quote do
-                field unquote(field_name), non_null(list_of(non_null(unquote(absinthe_type))))
+                field(unquote(field_name), non_null(list_of(non_null(unquote(absinthe_type)))))
               end
             else
               quote do
-                field unquote(field_name), non_null(list_of(non_null(unquote(absinthe_type))))
+                field(unquote(field_name), non_null(list_of(non_null(unquote(absinthe_type)))))
               end
             end
         end
@@ -162,8 +181,6 @@ defmodule FastFood.Absinthe.Object do
   end
 
   defp make_associations(ecto_schema, is_input_type) do
-    # TODO support HasThrough
-
     for association_name <- ecto_schema.__schema__(:associations) do
       ecto_assoc = ecto_schema.__schema__(:association, association_name)
 
@@ -177,6 +194,22 @@ defmodule FastFood.Absinthe.Object do
 
           %Ecto.Association.ManyToMany{related: related_ecto_schema} ->
             {:many, related_ecto_schema}
+
+          %Ecto.Association.HasThrough{
+            cardinality: cardinality,
+            owner: owner,
+            through: [through_assoc, through_field]
+          }
+          when is_atom(through_field) ->
+            # TODO add support for nested through
+            %Ecto.Association.Has{related: through_ecto_schema} =
+              owner.__schema__(:association, through_assoc)
+
+            related_ecto_schema =
+              through_ecto_schema.__schema__(:association, through_field)
+              |> Map.get(:related)
+
+            {cardinality, related_ecto_schema}
         end
 
       absinthe_type =
@@ -194,28 +227,34 @@ defmodule FastFood.Absinthe.Object do
           is_field_non_null?(ecto_schema, association_name)
         end
 
-      IO.puts " - association: field_name = #{inspect(association_name)}, related_ecto_schema = #{inspect(related_ecto_schema)}, absinthe_type = #{inspect(absinthe_type)}, non_null = #{inspect(non_null)}, cardinality = #{inspect(cardinality)}"
+      IO.puts(
+        " - association: field_name = #{inspect(association_name)}, related_ecto_schema = #{inspect(related_ecto_schema)}, absinthe_type = #{inspect(absinthe_type)}, non_null = #{inspect(non_null)}, cardinality = #{inspect(cardinality)}"
+      )
+
       if !is_nil(absinthe_type) do
         case cardinality do
           :one ->
             if non_null do
               quote do
-                field unquote(association_name), non_null(unquote(absinthe_type))
+                field(unquote(association_name), non_null(unquote(absinthe_type)))
               end
             else
               quote do
-                field unquote(association_name), unquote(absinthe_type)
+                field(unquote(association_name), unquote(absinthe_type))
               end
             end
 
           :many ->
             if is_input_type do
               quote do
-                field unquote(association_name), list_of(non_null(unquote(absinthe_type)))
+                field(unquote(association_name), list_of(non_null(unquote(absinthe_type))))
               end
             else
               quote do
-                field unquote(association_name), non_null(list_of(non_null(unquote(absinthe_type))))
+                field(
+                  unquote(association_name),
+                  non_null(list_of(non_null(unquote(absinthe_type))))
+                )
               end
             end
         end
@@ -228,6 +267,7 @@ defmodule FastFood.Absinthe.Object do
       case ecto_type do
         {:parameterized, Ecto.Enum, _} ->
           ecto_schema_to_absinthe_enum_type(ecto_schema, field_name)
+
         ecto_type ->
           ecto_field_type_to_absinthe_type(ecto_type)
       end
@@ -240,15 +280,18 @@ defmodule FastFood.Absinthe.Object do
         is_field_non_null?(ecto_schema, field_name)
       end
 
-    IO.puts " - field: field_name = #{inspect(field_name)}, ecto_type = #{inspect(ecto_type)}, absinthe_type = #{inspect(absinthe_type)}, non_null = #{inspect(non_null)}"
+    IO.puts(
+      " - field: field_name = #{inspect(field_name)}, ecto_type = #{inspect(ecto_type)}, absinthe_type = #{inspect(absinthe_type)}, non_null = #{inspect(non_null)}"
+    )
+
     if !is_nil(absinthe_type) do
       if non_null do
         quote do
-          field unquote(field_name), non_null(unquote(absinthe_type))
+          field(unquote(field_name), non_null(unquote(absinthe_type)))
         end
       else
         quote do
-          field unquote(field_name), unquote(absinthe_type)
+          field(unquote(field_name), unquote(absinthe_type))
         end
       end
     end
