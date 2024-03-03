@@ -5,6 +5,7 @@ defmodule FastFood.Absinthe.Resolver do
 
   import Ecto.Query
   require Logger
+  alias FastFood.Absinthe.Assoc
 
   def resolve_root_query_many(ecto_schema, parent, args, resolution) do
     Logger.debug(
@@ -407,8 +408,8 @@ defmodule FastFood.Absinthe.Resolver do
         record
         |> Ecto.assoc(field_identifier)
 
-      related_ecto_schema =
-        record.__struct__.__schema__(:association, field_identifier).related
+      {_cardinality, related_ecto_schema} =
+        Assoc.resolve_related_ecto_schema(record.__struct__, field_identifier)
 
       filtered_query =
         record
@@ -430,8 +431,8 @@ defmodule FastFood.Absinthe.Resolver do
         record
         |> Ecto.assoc(field_identifier)
 
-      related_ecto_schema =
-        record.__struct__.__schema__(:association, field_identifier).related
+      {_cardinality, related_ecto_schema} =
+        Assoc.resolve_related_ecto_schema(record.__struct__, field_identifier)
 
       filtered_query =
         record

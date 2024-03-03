@@ -1,5 +1,6 @@
 defmodule FastFood.Absinthe.Object do
   import FastFood.Absinthe.Naming
+  alias FastFood.Absinthe.Assoc
 
   defmacro make_types(ecto_schema) do
     ecto_schema = Macro.expand(ecto_schema, __CALLER__)
@@ -185,32 +186,7 @@ defmodule FastFood.Absinthe.Object do
       ecto_assoc = ecto_schema.__schema__(:association, association_name)
 
       {cardinality, related_ecto_schema} =
-        case ecto_assoc do
-          %Ecto.Association.BelongsTo{related: related_ecto_schema} ->
-            {:one, related_ecto_schema}
-
-          %Ecto.Association.Has{cardinality: cardinality, related: related_ecto_schema} ->
-            {cardinality, related_ecto_schema}
-
-          %Ecto.Association.ManyToMany{related: related_ecto_schema} ->
-            {:many, related_ecto_schema}
-
-          %Ecto.Association.HasThrough{
-            cardinality: cardinality,
-            owner: owner,
-            through: [through_assoc, through_field]
-          }
-          when is_atom(through_field) ->
-            # TODO add support for nested through
-            %Ecto.Association.Has{related: through_ecto_schema} =
-              owner.__schema__(:association, through_assoc)
-
-            related_ecto_schema =
-              through_ecto_schema.__schema__(:association, through_field)
-              |> Map.get(:related)
-
-            {cardinality, related_ecto_schema}
-        end
+        Assoc.resolve_related_ecto_schema(ecto_schema, association_name)
 
       absinthe_type =
         if is_input_type do
