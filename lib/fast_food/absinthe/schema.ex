@@ -29,6 +29,22 @@ defmodule FastFood.Absinthe.Schema do
     end
   end
 
+  @doc """
+  Checks whether given module is a FastFood schema.
+
+  Raises if not.
+  """
+  @spec check_fastfood_schema!(module()) :: :ok
+  def check_fastfood_schema!(module) do
+    if function_exported?(module, :__fastfood__, 2) do
+      :ok
+    else
+      raise """
+      Module #{module} is not FastFood schema.
+      """
+    end
+  end
+
   defp pre(block) do
     Macro.postwalk(
       block,

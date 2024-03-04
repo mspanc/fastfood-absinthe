@@ -1,9 +1,10 @@
 defmodule FastFood.Absinthe.Object do
   import FastFood.Absinthe.Naming
-  alias FastFood.Absinthe.{Assoc, Field}
+  alias FastFood.Absinthe.{Assoc, Schema}
 
   defmacro make_types(ecto_schema) do
     ecto_schema = Macro.expand(ecto_schema, __CALLER__)
+    Schema.check_fastfood_schema!(ecto_schema)
 
     enum_type = make_enum_type(ecto_schema)
     type = make_type(ecto_schema)
@@ -135,7 +136,7 @@ defmodule FastFood.Absinthe.Object do
         if is_input_type do
           false
         else
-          Field.is_non_null?(ecto_schema, field_name)
+          ecto_schema.__fastfood__(:non_null, field_name)
         end
 
       IO.puts(
@@ -200,7 +201,7 @@ defmodule FastFood.Absinthe.Object do
         if is_input_type do
           false
         else
-          Field.is_non_null?(ecto_schema, association_name)
+          ecto_schema.__fastfood__(:non_null, association_name)
         end
 
       IO.puts(
@@ -253,7 +254,7 @@ defmodule FastFood.Absinthe.Object do
       if is_input_type do
         false
       else
-        Field.is_non_null?(ecto_schema, field_name)
+        ecto_schema.__fastfood__(:non_null, field_name)
       end
 
     IO.puts(
