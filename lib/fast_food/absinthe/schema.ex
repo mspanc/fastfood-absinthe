@@ -25,7 +25,13 @@ defmodule FastFood.Absinthe.Schema do
     quote do
       use Ecto.Schema
       @behaviour FastFood.Absinthe.Schema
-      import FastFood.Absinthe.Schema, only: [fastfood_schema: 2, fastfood_embedded_schema: 1]
+      import FastFood.Absinthe.Schema,
+        only: [
+          fastfood_schema: 2,
+          fastfood_schema: 3,
+          fastfood_embedded_schema: 1,
+          fastfood_embedded_schema: 2
+        ]
     end
   end
 
@@ -40,7 +46,11 @@ defmodule FastFood.Absinthe.Schema do
       :ok
     else
       raise """
-      Module #{module} is not FastFood schema.
+      Module #{module} is not a FastFood schema.
+
+      Use fastfood_schema/3 or fastfood_embedded_schema/2 instead of standard
+      Ecto's schema/2 or embedded_schema/1 if you want to define a schema that
+      can be handled by FastFood.
       """
     end
   end
@@ -55,9 +65,31 @@ defmodule FastFood.Absinthe.Schema do
     )
   end
 
-  defp post(fastfood_schema_opts) do
+  defp post(fastfood_schema_opts, fastfood_fields_opts) do
+    description =
+      if Keyword.has_key?(fastfood_schema_opts, :description) &&
+           fastfood_schema_opts[:description] != nil do
+        if !is_binary(fastfood_schema_opts[:description]) do
+          raise """
+          FastFood schema #{__MODULE__} has improper configuration.
+
+          It was given a description (via :description option) but its value is not a binary.
+
+          The given value was #{inspect(fastfood_schema_opts[:description])}.
+          """
+        end
+
+        quote do
+          def __fastfood__(:description), do: unquote(fastfood_schema_opts[:description])
+        end
+      else
+        quote do
+          def __fastfood__(:description), do: nil
+        end
+      end
+
     non_nulls =
-      for {field_name, graphql_opts} <- fastfood_schema_opts.field do
+      for {field_name, graphql_opts} <- fastfood_fields_opts.field do
         if Keyword.has_key?(graphql_opts, :non_null) do
           quote do
             def __fastfood__(:non_null, unquote(field_name)), do: unquote(graphql_opts[:non_null])
@@ -110,7 +142,7 @@ defmodule FastFood.Absinthe.Schema do
         end
       end
 
-    [non_nulls, non_nulls_catchall]
+    [description, non_nulls, non_nulls_catchall]
   end
 
   @doc """
@@ -130,7 +162,17 @@ defmodule FastFood.Absinthe.Schema do
     mark them as non-nullable in the API, use this option.
   """
   defmacro fastfood_schema(source, do: block) do
-    {updated_block, fastfood_schema_opts} =
+    do_fastfood_schema(source, [], do: block)
+  end
+
+  defmacro fastfood_schema(source, opts, do: block) when is_list(opts) do
+    do_fastfood_schema(source, opts, do: block)
+  end
+
+  defp do_fastfood_schema(source, opts, do: block) do
+    fastfood_schema_opts = opts[:graphql] || []
+
+    {updated_block, fastfood_fields_opts} =
       pre(block)
 
     schema =
@@ -140,7 +182,7 @@ defmodule FastFood.Absinthe.Schema do
         end
       end
 
-    post_code = post(fastfood_schema_opts)
+    post_code = post(fastfood_schema_opts, fastfood_fields_opts)
 
     [schema | post_code]
   end
@@ -152,8 +194,18 @@ defmodule FastFood.Absinthe.Schema do
 
   See `fastfood_schema/2` for more information.
   """
+  defmacro fastfood_embedded_schema(opts, do: block) when is_list(opts) do
+    do_fastfood_embedded_schema(opts, do: block)
+  end
+
   defmacro fastfood_embedded_schema(do: block) do
-    {updated_block, fastfood_schema_opts} =
+    do_fastfood_embedded_schema([], do: block)
+  end
+
+  defp do_fastfood_embedded_schema(opts, do: block) do
+    fastfood_schema_opts = opts[:graphql] || []
+
+    {updated_block, fastfood_fields_opts} =
       pre(block)
 
     schema =
@@ -163,7 +215,7 @@ defmodule FastFood.Absinthe.Schema do
         end
       end
 
-    post_code = post(fastfood_schema_opts)
+    post_code = post(fastfood_schema_opts, fastfood_fields_opts)
 
     [schema | post_code]
   end

@@ -27,8 +27,12 @@ defmodule FastFood.Absinthe.Object do
 
     fields = make_fields(ecto_schema, false)
 
+    description = ecto_schema.__fastfood__(:description)
+
     quote do
-      object unquote(absinthe_type), name: unquote(graphql_type) do
+      object unquote(absinthe_type),
+        name: unquote(graphql_type),
+        description: unquote(description) do
         unquote(fields)
       end
     end
