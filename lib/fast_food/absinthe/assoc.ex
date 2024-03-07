@@ -31,8 +31,28 @@ defmodule FastFood.Absinthe.Assoc do
           owner.__schema__(:association, through_assoc)
 
         related_ecto_schema =
-          through_ecto_schema.__schema__(:association, through_field)
-          |> Map.get(:related)
+          case through_ecto_schema.__schema__(:association, through_field) do
+            nil ->
+              raise """
+              Failed to resolve "has through" association for the following FastFood schema:
+
+                #{ecto_schema}.#{association_name}
+
+                  has through
+
+                #{ecto_schema}.#{through_assoc} -> #{through_field}
+
+                It seems that #{ecto_schema}.#{through_assoc} points to
+
+                  #{through_ecto_schema}
+
+                but it's field #{through_field} is not a valid association.
+              """
+
+            related_ecto_schema ->
+              related_ecto_schema
+              |> Map.get(:related)
+          end
 
         {cardinality, related_ecto_schema}
     end
