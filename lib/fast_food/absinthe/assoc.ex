@@ -38,15 +38,15 @@ defmodule FastFood.Absinthe.Assoc do
 
                 #{ecto_schema}.#{association_name}
 
-                  has through
+                  has many through
 
-                #{ecto_schema}.#{through_assoc} -> #{through_field}
+                #{through_assoc} -> #{through_field}
 
                 It seems that #{ecto_schema}.#{through_assoc} points to
 
                   #{through_ecto_schema}
 
-                but it's field #{through_field} is not a valid association.
+                but its field "#{through_field}" is not a valid association.
               """
 
             related_ecto_schema ->
