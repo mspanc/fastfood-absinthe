@@ -167,6 +167,8 @@ defmodule FastFood.Absinthe.Resolver do
         {:error, message: "Unable to find record with given ID", code: :notfound}
 
       {:error, changeset = %Ecto.Changeset{}} ->
+        ecto_schema = changeset.data.__struct__
+
         traversed =
           changeset
           |> Ecto.Changeset.traverse_errors(fn {msg, opts} ->
@@ -187,8 +189,20 @@ defmodule FastFood.Absinthe.Resolver do
         fields =
           traversed
           |> Enum.reduce(%{}, fn {field, errors}, acc ->
-            acc
-            |> Map.put(Inflex.camelize(to_string(field), :lower), errors)
+            acc =
+              acc
+              |> Map.put(Inflex.camelize(to_string(field), :lower), errors)
+
+            # If field is a belongs_to assoc then we need to add the foreign key field
+            case ecto_schema.__schema__(:association, field) do
+              %Ecto.Association.BelongsTo{owner_key: owner_key} ->
+                acc =
+                  acc
+                  |> Map.put(Inflex.camelize(to_string(owner_key), :lower), errors)
+
+              nil ->
+                acc
+            end
           end)
 
         {:error,
